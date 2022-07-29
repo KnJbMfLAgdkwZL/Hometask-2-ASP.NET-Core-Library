@@ -9,5 +9,5 @@ public sealed class Rating : IEntity
     public int BookId { get; set; }
     public byte Score { get; set; }
 
-    [ForeignKey("BookId")] public Book? Book { get; set; }
+    [ForeignKey("BookId")] public Book Book { get; set; } = null!;
 }
