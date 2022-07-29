@@ -8,8 +8,10 @@
 
     <ItemGroup>
       <Folder Include="Dto" />
-      <Folder Include="Interfaces" />
-      <Folder Include="Services" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\DataAccess\DataAccess.csproj" />
     </ItemGroup>
 
 </Project>
