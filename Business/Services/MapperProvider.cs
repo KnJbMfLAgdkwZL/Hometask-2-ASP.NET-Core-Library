@@ -24,8 +24,10 @@ public class MapperProvider : IMapperProvider
                     .ForMember(des => des.Id, m => m.MapFrom(sou => sou.Id))
                     .ForMember(des => des.Title, m => m.MapFrom(sou => sou.Title))
                     .ForMember(des => des.Author, m => m.MapFrom(sou => sou.Author))
-                    .ForMember(des => des.Rating, m => m.MapFrom(sou => sou.Ratings.Average(r => r.Score)))
-                    .ForMember(des => des.ReviewsNumber, m => m.MapFrom(sou => sou.Reviews.Count));
+                    .ForMember(des => des.Rating,
+                        m => m.MapFrom(sou => (sou.Ratings.Count > 0) ? sou.Ratings.Average(r => r.Score) : 0))
+                    .ForMember(des => des.ReviewsNumber,
+                        m => m.MapFrom(sou => (sou.Reviews.Count > 0) ? sou.Reviews.Count : 0));
 
                 cfg.CreateMap<Review, BookReviewsDtoOut>(MemberList.None)
                     .ForMember(des => des.Id, m => m.MapFrom(sou => sou.Id))
@@ -38,7 +40,8 @@ public class MapperProvider : IMapperProvider
                     .ForMember(des => des.Author, m => m.MapFrom(sou => sou.Author))
                     .ForMember(des => des.Cover, m => m.MapFrom(sou => sou.Cover))
                     .ForMember(des => des.Content, m => m.MapFrom(sou => sou.Content))
-                    .ForMember(des => des.Rating, m => m.MapFrom(sou => sou.Ratings.Average(r => r.Score)))
+                    .ForMember(des => des.Rating,
+                        m => m.MapFrom(sou => (sou.Ratings.Count > 0) ? sou.Ratings.Average(r => r.Score) : 0))
                     .ForMember(des => des.Reviews, m => m.MapFrom(sou => sou.Reviews));
 
                 cfg.CreateMap<RatingDtoIn, Rating>(MemberList.None)
