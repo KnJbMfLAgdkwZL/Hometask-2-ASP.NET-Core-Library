@@ -18,6 +18,7 @@ public class MasterContext : DbContext
     {
         modelBuilder.Entity<Book>(entity =>
         {
+            entity.HasKey(e => e.Id);
             entity.Property(e => e.Id);
             entity.Property(e => e.Title).HasMaxLength(255).IsUnicode();
             entity.Property(e => e.Cover).HasMaxLength(255).IsUnicode();
@@ -31,6 +32,7 @@ public class MasterContext : DbContext
 
         modelBuilder.Entity<Review>(entity =>
         {
+            entity.HasKey(e => e.Id);
             entity.Property(e => e.Id);
             entity.Property(e => e.Message).HasMaxLength(255).IsUnicode();
             entity.Property(e => e.BookId);
@@ -44,6 +46,7 @@ public class MasterContext : DbContext
 
         modelBuilder.Entity<Rating>(entity =>
         {
+            entity.HasKey(e => e.Id);
             entity.Property(e => e.Id);
             entity.Property(e => e.BookId);
             entity.Property(e => e.Score);
