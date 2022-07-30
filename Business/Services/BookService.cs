@@ -13,31 +13,31 @@ public class BookService : IBookService
 {
     private readonly IGeneralRepository<Book> _bookRepository;
     private readonly IMapper _mapper;
+    private readonly IRatingService _ratingService;
+    private readonly IReviewService _reviewService;
 
-    public BookService(IGeneralRepository<Book> bookRepository, IMapper mapper)
+    private readonly IGeneralRepository<Rating> Rating;
+
+    public BookService(IGeneralRepository<Book> bookRepository, IMapper mapper, IRatingService ratingService,
+        IReviewService reviewService,
+        IGeneralRepository<Rating> rating)
     {
         _bookRepository = bookRepository;
         _mapper = mapper;
+        _ratingService = ratingService;
+        _reviewService = reviewService;
+
+        Rating = rating;
     }
 
-    /*### 1. Get all books. Order by provided value (title or author)
-        GET https://{{baseUrl}}/api/books?order=author
-    # Response
-    # [{
-    # 	"id": "number",    
-    # 	"title": "string",
-    # 	"author": "string",
-    # 	"rating": "decimal",          	average rating
-    # 	"reviewsNumber": "decimal"    	count of reviews
-    # }]    */
     public async Task<List<BookShortDtoOut>> GetAllAsync(string order, CancellationToken token)
     {
         Expression<Func<Book, bool>> condition = (book) => book.Id > 0;
 
         var includes = new List<Expression<Func<Book, object>>>()
         {
-            book => book.Ratings ?? new List<Rating>(),
-            book => book.Reviews ?? new List<Review>()
+            book => book.Ratings,
+            book => book.Reviews
         };
 
         Expression<Func<Book, object>> orderBy = order.ToLower() switch
@@ -52,25 +52,14 @@ public class BookService : IBookService
         return _mapper.Map<List<Book>, List<BookShortDtoOut>>(books);
     }
 
-    /*### 2. Get top 10 books with high rating and number of reviews greater than 10. 
-    You can filter books by specifying genre. Order by rating
-    GET https://{{baseUrl}}/api/recommended?genre=horror
-    # Response
-    # [{
-    # 	"id": "number",
-    # 	"title": "string",
-    # 	"author": "string",
-    # 	"rating": "decimal",          	average rating
-    # 	"reviewsNumber": "decimal"    	count of reviews
-    # }]     */
     public async Task<List<BookShortDtoOut>> GetTop10Async(string genre, CancellationToken token)
     {
         Expression<Func<Book, bool>> condition = (book) => EF.Functions.Like(book.Genre, $"%{genre}%");
 
         var includes = new List<Expression<Func<Book, object>>>()
         {
-            book => book.Ratings ?? new List<Rating>(),
-            book => book.Reviews ?? new List<Review>()
+            book => book.Ratings,
+            book => book.Reviews
         };
 
         Expression<Func<Book, object>> orderBy = (book) => book.Ratings.Average(rating => rating.Score);
@@ -80,28 +69,12 @@ public class BookService : IBookService
         return _mapper.Map<List<Book>, List<BookShortDtoOut>>(books);
     }
 
-    /*### 3. Get book details with the list of reviews
-        GET https://{{baseUrl}}/api/books/{id}
-    # Response
-    # {
-    # 	"id": "number",
-    # 	"title": "string",
-    # 	"author": "string",
-    # 	"cover": "string",
-    # 	"content": "string",
-    # 	"rating": "decimal",          	average rating
-    # 	"reviews": [{
-    #     	    "id": "number",
-    #     	    "message": "string",
-    #     	    "reviewer": "string",
-    # 	}]
-    # }}    */
     public async Task<BookDetailDtoOut?> GetOneAsync(int id, CancellationToken token)
     {
         var includes = new List<Expression<Func<Book, object>>>()
         {
-            book => book.Ratings ?? new List<Rating>(),
-            book => book.Reviews ?? new List<Review>()
+            book => book.Ratings,
+            book => book.Reviews
         };
 
         var book = await _bookRepository.GetOneIncludeManyAsync(book => book.Id == id, includes, token);
@@ -109,27 +82,19 @@ public class BookService : IBookService
         return book != null ? _mapper.Map<Book, BookDetailDtoOut>(book) : null;
     }
 
-    /*    ### 4. Delete a book using a secret key. Save the secret key in the config of your application. Compare this key with query param
-    DELETE https://{{baseUrl}}/api/books/{id}?secret=qwerty    */
     public async Task DeleteOneAsync(int id, CancellationToken token)
     {
         await _bookRepository.RemoveIfExistAsync(book => book.Id == id, token);
+        await _ratingService.DeleteAsync(id, token);
+        await _reviewService.DeleteAsync(id, token);
+
+        var rows = await Rating.GetAllAsync(rating => rating.BookId == id, token);
+        foreach (var r in rows)
+        {
+            Console.WriteLine($"{r.Id} {r.Score} {r.BookId}");
+        }
     }
 
-    /*    ### 5. Save a new book.
-    POST https://{{baseUrl}}/api/books/save
-    {
-        "id": "number",             	// if id is not provided create a new book, otherwise - update an existing one
-        "title": "string",
-        "cover": "string",          	// save image as base64
-        "content": "string",
-        "genre": "string",
-        "author": "string"
-    }
-    # Response
-    # {
-    # 	"id": "number"
-    # }    */
     public async Task<int> SaveAsync(BookDtoIn bookDtoIn, CancellationToken token)
     {
         var bookModel = _mapper.Map<BookDtoIn, Book>(bookDtoIn);

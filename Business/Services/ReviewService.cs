@@ -17,21 +17,15 @@ public class ReviewService : IReviewService
         _mapper = mapper;
     }
 
-    /*### 6. Save a review for the book.
-    PUT https://{{baseUrl}}/api/books/{id}/review
-
+    public async Task<int> SaveAsync(ReviewDtoIn reviewDtoIn, CancellationToken token)
     {
-	    "message": "string",
-	    "reviewer": "string",
+        var reviewModel = _mapper.Map<ReviewDtoIn, Review>(reviewDtoIn);
+        var review = await _reviewRepository.AddAsync(reviewModel, token);
+        return review.Id;
     }
-    # Response
-    # {
-    # 	"id": "number"
-    # }    */
-    public async Task<Review> SaveAsync(ReviewDtoIn reviewDtoIn, CancellationToken token)
+
+    public async Task DeleteAsync(int bookId, CancellationToken token)
     {
-        var review = _mapper.Map<ReviewDtoIn, Review>(reviewDtoIn);
-        return await _reviewRepository.AddAsync(review, token);
-        ;
+        await _reviewRepository.RemoveRangeAsync(rating => rating.BookId == bookId, token);
     }
 }

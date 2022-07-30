@@ -4,5 +4,6 @@ namespace Business.Interfaces;
 
 public interface IRatingService
 {
-    Task RateAsync(RatingDtoIn ratingDtoIn, CancellationToken token);
+    Task<int> RateAsync(RatingDtoIn ratingDtoIn, CancellationToken token);
+    Task DeleteAsync(int bookId, CancellationToken token);
 }

@@ -17,14 +17,15 @@ public class RatingService : IRatingService
         _mapper = mapper;
     }
 
-    /*### 7. Rate a book
-    PUT https://{{baseUrl}}/api/books/{id}/rate
+    public async Task<int> RateAsync(RatingDtoIn ratingDtoIn, CancellationToken token)
     {
-        "score": "number",    	// score can be from 1 to 5
-    }    */
-    public async Task RateAsync(RatingDtoIn ratingDtoIn, CancellationToken token)
+        var ratingModel = _mapper.Map<RatingDtoIn, Rating>(ratingDtoIn);
+        var rating = await _ratingRepository.AddAsync(ratingModel, token);
+        return rating.Id;
+    }
+
+    public async Task DeleteAsync(int bookId, CancellationToken token)
     {
-        var rating = _mapper.Map<RatingDtoIn, Rating>(ratingDtoIn);
-        await _ratingRepository.AddAsync(rating, token);
+        await _ratingRepository.RemoveRangeAsync(rating => rating.BookId == bookId, token);
     }
 }

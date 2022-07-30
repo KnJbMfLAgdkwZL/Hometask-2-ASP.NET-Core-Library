@@ -5,5 +5,6 @@ namespace Business.Interfaces;
 
 public interface IReviewService
 {
-    Task<Review> SaveAsync(ReviewDtoIn reviewDtoIn, CancellationToken token);
+    Task<int> SaveAsync(ReviewDtoIn reviewDtoIn, CancellationToken token);
+    Task DeleteAsync(int bookId, CancellationToken token);
 }
