@@ -1,3 +1,4 @@
+using APIWeb.Middlewares;
 using Business.Interfaces;
 using Business.Services;
 using DataAccess.Interfaces;
@@ -45,6 +46,11 @@ var app = builder.Build();
 var scopeeee = ((IApplicationBuilder) app).ApplicationServices.CreateScope();
 var context = scopeeee.ServiceProvider.GetRequiredService<MasterContext>();
 await TestData.SeedAsync(context);
+
+//Custom Middlewares
+app.UseMiddleware<RequestHandlerMiddleware>();
+app.UseMiddleware<ResponseHandlerMiddleware>();
+app.UseMiddleware<ErrorHandlerMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
