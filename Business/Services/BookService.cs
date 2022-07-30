@@ -16,18 +16,16 @@ public class BookService : IBookService
     private readonly IRatingService _ratingService;
     private readonly IReviewService _reviewService;
 
-    private readonly IGeneralRepository<Rating> Rating;
 
-    public BookService(IGeneralRepository<Book> bookRepository, IMapper mapper, IRatingService ratingService,
-        IReviewService reviewService,
-        IGeneralRepository<Rating> rating)
+    public BookService(
+        IGeneralRepository<Book> bookRepository,
+        IMapper mapper, IRatingService ratingService,
+        IReviewService reviewService)
     {
         _bookRepository = bookRepository;
         _mapper = mapper;
         _ratingService = ratingService;
         _reviewService = reviewService;
-
-        Rating = rating;
     }
 
     public async Task<List<BookShortDtoOut>> GetAllAsync(string order, CancellationToken token)
@@ -87,12 +85,6 @@ public class BookService : IBookService
         await _bookRepository.RemoveIfExistAsync(book => book.Id == id, token);
         await _ratingService.DeleteAsync(id, token);
         await _reviewService.DeleteAsync(id, token);
-
-        var rows = await Rating.GetAllAsync(rating => rating.BookId == id, token);
-        foreach (var r in rows)
-        {
-            Console.WriteLine($"{r.Id} {r.Score} {r.BookId}");
-        }
     }
 
     public async Task<int> SaveAsync(BookDtoIn bookDtoIn, CancellationToken token)
