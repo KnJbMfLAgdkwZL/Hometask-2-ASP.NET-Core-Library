@@ -93,4 +93,10 @@ public class BookService : IBookService
         var book = await _bookRepository.AddOrUpdateAsync(book => book.Id == bookModel.Id, bookModel, token);
         return book.Id;
     }
+
+    public async Task<bool> IsExist(int id, CancellationToken token)
+    {
+        var book = await _bookRepository.GetOneAsync(book => book.Id == id, token);
+        return book != null;
+    }
 }

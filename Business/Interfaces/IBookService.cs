@@ -10,4 +10,5 @@ public interface IBookService
     Task<BookDetailDtoOut?> GetOneAsync(int id, CancellationToken token);
     Task DeleteOneAsync(int id, CancellationToken token);
     Task<int> SaveAsync(BookDtoIn bookDtoIn, CancellationToken token);
+    Task<bool> IsExist(int id, CancellationToken token);
 }

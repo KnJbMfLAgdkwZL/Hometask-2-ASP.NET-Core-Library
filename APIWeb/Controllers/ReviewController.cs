@@ -9,10 +9,12 @@ namespace APIWeb.Controllers;
 public class ReviewController : Controller
 {
     private readonly IReviewService _reviewService;
+    private readonly IBookService _bookService;
 
-    public ReviewController(IReviewService reviewService)
+    public ReviewController(IReviewService reviewService, IBookService bookService)
     {
         _reviewService = reviewService;
+        _bookService = bookService;
     }
 
     [HttpPost]
@@ -22,6 +24,11 @@ public class ReviewController : Controller
     {
         if (ModelState.IsValid)
         {
+            if (!await _bookService.IsExist(bookId, token))
+            {
+                return BadRequest("Wrong bookId");
+            }
+
             reviewDtoIn.BookId = bookId;
             var id = await _reviewService.SaveAsync(reviewDtoIn, token);
             return Ok(new {id});
