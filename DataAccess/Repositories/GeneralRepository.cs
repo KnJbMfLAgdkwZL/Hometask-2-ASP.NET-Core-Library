@@ -31,19 +31,13 @@ public class GeneralRepository<T> : IGeneralRepository<T> where T : class
     public async Task<T> AddIfNotExistAsync(Expression<Func<T, bool>> condition, T model,
         CancellationToken token)
     {
-        await using var transaction = await _masterContext.Database.BeginTransactionAsync(token);
-
         var result = await GetOneAsync(condition, token) ?? await AddAsync(model, token);
-
-        await transaction.CommitAsync(token);
 
         return result;
     }
 
     public async Task<T> AddOrUpdateAsync(Expression<Func<T, bool>> condition, T model, CancellationToken token)
     {
-        await using var transaction = await _masterContext.Database.BeginTransactionAsync(token);
-
         var result = await GetOneAsync(condition, token);
 
         T modelRes;
@@ -63,8 +57,6 @@ public class GeneralRepository<T> : IGeneralRepository<T> where T : class
             await UpdateAsync(model, token);
         }
 
-        await transaction.CommitAsync(token);
-
         return modelRes;
     }
 
@@ -79,8 +71,6 @@ public class GeneralRepository<T> : IGeneralRepository<T> where T : class
 
     public async Task<T> RemoveIfExistAsync(Expression<Func<T, bool>> condition, CancellationToken token)
     {
-        await using var transaction = await _masterContext.Database.BeginTransactionAsync(token);
-
         var result = await GetOneAsync(condition, token);
 
         T modelRes = null!;
@@ -90,9 +80,16 @@ public class GeneralRepository<T> : IGeneralRepository<T> where T : class
             modelRes = await RemoveAsync(result, token);
         }
 
-        await transaction.CommitAsync(token);
-
         return modelRes;
+    }
+
+    public async Task RemoveRangeAsync(Expression<Func<T, bool>> condition, CancellationToken token)
+    {
+        var rows = await GetAllAsync(condition, token);
+
+        _table.RemoveRange(rows);
+
+        await _masterContext.SaveChangesAsync(token);
     }
 
     public async Task<T> UpdateAsync(T model, CancellationToken token)

@@ -9,6 +9,7 @@ public interface IGeneralRepository<T>
     Task<T> AddOrUpdateAsync(Expression<Func<T, bool>> condition, T model, CancellationToken token);
     Task<T> RemoveAsync(T model, CancellationToken token);
     Task<T> RemoveIfExistAsync(Expression<Func<T, bool>> condition, CancellationToken token);
+    Task RemoveRangeAsync(Expression<Func<T, bool>> condition, CancellationToken token);
     Task<T> UpdateAsync(T model, CancellationToken token);
     Task<List<T>> GetAllAsync(CancellationToken token);
     Task<List<T>> GetAllAsync(Expression<Func<T, bool>> condition, CancellationToken token);
