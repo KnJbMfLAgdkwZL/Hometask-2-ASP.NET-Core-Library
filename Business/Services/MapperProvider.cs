@@ -27,6 +27,11 @@ public class MapperProvider : IMapperProvider
                     .ForMember(des => des.Rating, m => m.MapFrom(sou => sou.Ratings.Average(r => r.Score)))
                     .ForMember(des => des.ReviewsNumber, m => m.MapFrom(sou => sou.Reviews.Count));
 
+                cfg.CreateMap<Review, BookReviewsDtoOut>(MemberList.None)
+                    .ForMember(des => des.Id, m => m.MapFrom(sou => sou.Id))
+                    .ForMember(des => des.Message, m => m.MapFrom(sou => sou.Message))
+                    .ForMember(des => des.Reviewer, m => m.MapFrom(sou => sou.Reviewer));
+
                 cfg.CreateMap<Book, BookDetailDtoOut>(MemberList.None)
                     .ForMember(des => des.Id, m => m.MapFrom(sou => sou.Id))
                     .ForMember(des => des.Title, m => m.MapFrom(sou => sou.Title))
