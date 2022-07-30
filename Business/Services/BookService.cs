@@ -1,4 +1,7 @@
 using System.Linq.Expressions;
+using AutoMapper;
+using Business.Dto.In;
+using Business.Dto.Out;
 using Business.Interfaces;
 using DataAccess.Interfaces;
 using Database.Models;
@@ -9,10 +12,12 @@ namespace Business.Services;
 public class BookService : IBookService
 {
     private readonly IGeneralRepository<Book> _bookRepository;
+    private readonly IMapper _mapper;
 
-    public BookService(IGeneralRepository<Book> bookRepository)
+    public BookService(IGeneralRepository<Book> bookRepository, IMapper mapper)
     {
         _bookRepository = bookRepository;
+        _mapper = mapper;
     }
 
     /*### 1. Get all books. Order by provided value (title or author)
@@ -24,16 +29,15 @@ public class BookService : IBookService
     # 	"author": "string",
     # 	"rating": "decimal",          	average rating
     # 	"reviewsNumber": "decimal"    	count of reviews
-    # }]
-    */
-    //public async Task<PageResult<User>>
-    public async Task<List<Book>> GetAllAsync(string order, CancellationToken token)
+    # }]    */
+    public async Task<List<BookShortDtoOut>> GetAllAsync(string order, CancellationToken token)
     {
         Expression<Func<Book, bool>> condition = (book) => book.Id > 0;
 
         var includes = new List<Expression<Func<Book, object>>>()
         {
-            book => book.Ratings ?? new List<Rating>()
+            book => book.Ratings ?? new List<Rating>(),
+            book => book.Reviews ?? new List<Review>()
         };
 
         Expression<Func<Book, object>> orderBy = order.ToLower() switch
@@ -44,12 +48,11 @@ public class BookService : IBookService
         };
 
         var books = await _bookRepository.GetAllIncludeManyAsync(condition, includes, orderBy, token);
-        // get average rating for book
-        return books;
+
+        return _mapper.Map<List<Book>, List<BookShortDtoOut>>(books);
     }
 
-    /*
-    ### 2. Get top 10 books with high rating and number of reviews greater than 10. 
+    /*### 2. Get top 10 books with high rating and number of reviews greater than 10. 
     You can filter books by specifying genre. Order by rating
     GET https://{{baseUrl}}/api/recommended?genre=horror
     # Response
@@ -59,26 +62,25 @@ public class BookService : IBookService
     # 	"author": "string",
     # 	"rating": "decimal",          	average rating
     # 	"reviewsNumber": "decimal"    	count of reviews
-    # }]
-     */
-    public async Task<List<Book>> GetTop10Async(string genre, CancellationToken token)
+    # }]     */
+    public async Task<List<BookShortDtoOut>> GetTop10Async(string genre, CancellationToken token)
     {
         Expression<Func<Book, bool>> condition = (book) => EF.Functions.Like(book.Genre, $"%{genre}%");
 
         var includes = new List<Expression<Func<Book, object>>>()
         {
-            book => book.Ratings ?? new List<Rating>()
+            book => book.Ratings ?? new List<Rating>(),
+            book => book.Reviews ?? new List<Review>()
         };
 
         Expression<Func<Book, object>> orderBy = (book) => book.Ratings.Average(rating => rating.Score);
 
         var books = await _bookRepository.GetAllIncludeManyAsync(condition, includes, orderBy, token);
-        // get average rating for book
-        return books.Take(10).ToList();
+
+        return _mapper.Map<List<Book>, List<BookShortDtoOut>>(books);
     }
 
-    /*    
-    ### 3. Get book details with the list of reviews
+    /*### 3. Get book details with the list of reviews
         GET https://{{baseUrl}}/api/books/{id}
     # Response
     # {
@@ -93,37 +95,28 @@ public class BookService : IBookService
     #     	    "message": "string",
     #     	    "reviewer": "string",
     # 	}]
-    # }}
-    */
-    public async Task<Book?> GetOneAsync(int id, CancellationToken token)
+    # }}    */
+    public async Task<BookDetailDtoOut?> GetOneAsync(int id, CancellationToken token)
     {
         var includes = new List<Expression<Func<Book, object>>>()
         {
             book => book.Ratings ?? new List<Rating>(),
-            book => book.Reviews
+            book => book.Reviews ?? new List<Review>()
         };
 
         var book = await _bookRepository.GetOneIncludeManyAsync(book => book.Id == id, includes, token);
-        // get average rating for book
-        return book;
+
+        return book != null ? _mapper.Map<Book, BookDetailDtoOut>(book) : null;
     }
 
-
-    /*
-    ### 4. Delete a book using a secret key. Save the secret key in the config of your application. Compare this key with query param
-    DELETE https://{{baseUrl}}/api/books/{id}?secret=qwerty
-    */
-    public async Task DeleteOneAsync(int id, string secret, CancellationToken token)
+    /*    ### 4. Delete a book using a secret key. Save the secret key in the config of your application. Compare this key with query param
+    DELETE https://{{baseUrl}}/api/books/{id}?secret=qwerty    */
+    public async Task DeleteOneAsync(int id, CancellationToken token)
     {
-        if (secret == "qwerty")
-        {
-            await _bookRepository.RemoveIfExistAsync(book => book.Id == id, token);
-        }
+        await _bookRepository.RemoveIfExistAsync(book => book.Id == id, token);
     }
 
-
-    /*
-    ### 5. Save a new book.
+    /*    ### 5. Save a new book.
     POST https://{{baseUrl}}/api/books/save
     {
         "id": "number",             	// if id is not provided create a new book, otherwise - update an existing one
@@ -136,12 +129,11 @@ public class BookService : IBookService
     # Response
     # {
     # 	"id": "number"
-    # }
-    */
-    public async Task<Book> SaveAsync(Book bookDto, CancellationToken token)
+    # }    */
+    public async Task<int> SaveAsync(BookDtoIn bookDtoIn, CancellationToken token)
     {
-        var bookModel = await _bookRepository.AddOrUpdateAsync(book => book.Id == bookDto.Id, bookDto, token);
-
-        return bookModel;
+        var bookModel = _mapper.Map<BookDtoIn, Book>(bookDtoIn);
+        var book = await _bookRepository.AddOrUpdateAsync(book => book.Id == bookModel.Id, bookModel, token);
+        return book.Id;
     }
 }

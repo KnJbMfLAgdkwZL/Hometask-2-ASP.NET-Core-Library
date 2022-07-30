@@ -1,8 +1,9 @@
+using Business.Dto.In;
 using Database.Models;
 
 namespace Business.Interfaces;
 
 public interface IReviewService
 {
-    Task<Review> SaveAsync(Review reviewDto, CancellationToken token);
+    Task<Review> SaveAsync(ReviewDtoIn reviewDtoIn, CancellationToken token);
 }

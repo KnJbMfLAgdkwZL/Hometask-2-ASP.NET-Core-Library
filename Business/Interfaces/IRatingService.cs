@@ -1,6 +1,8 @@
+using Business.Dto.In;
+
 namespace Business.Interfaces;
 
 public interface IRatingService
 {
-    Task RateAsync(int bookId, byte score, CancellationToken token);
+    Task RateAsync(RatingDtoIn ratingDtoIn, CancellationToken token);
 }
