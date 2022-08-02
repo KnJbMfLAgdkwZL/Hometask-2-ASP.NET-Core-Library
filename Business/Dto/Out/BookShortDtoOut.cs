@@ -7,4 +7,5 @@ public class BookShortDtoOut
     public string Author = "";
     public double Rating;
     public int ReviewsNumber;
+    public string Cover = "";
 }
