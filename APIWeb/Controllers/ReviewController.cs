@@ -1,9 +1,11 @@
 using Business.Dto.In;
 using Business.Interfaces;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APIWeb.Controllers;
 
+[EnableCors("AllowAll")]
 [ApiController]
 [Produces("application/json")]
 public class ReviewController : Controller

@@ -35,9 +35,11 @@ builder.Services.AddSingleton(serviceProvider =>
     return provider.GetMapper();
 });
 
+const string policyName = "AllowAll";
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policyBuilder => { policyBuilder.AllowAnyOrigin().AllowAnyHeader(); });
+    options.AddPolicy(policyName,
+        policyBuilder => { policyBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader(); });
 });
 
 
@@ -62,6 +64,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors(policyName);
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
