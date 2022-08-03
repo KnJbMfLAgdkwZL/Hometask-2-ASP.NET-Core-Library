@@ -64,7 +64,7 @@ public class BookService : IBookService
 
         var books = await _bookRepository.GetAllIncludeManyAsync(condition, includes, orderBy, token);
 
-        return _mapper.Map<List<Book>, List<BookShortDtoOut>>(books);
+        return _mapper.Map<List<Book>, List<BookShortDtoOut>>(books.Take(10).ToList());
     }
 
     public async Task<BookDetailDtoOut?> GetOneAsync(int id, CancellationToken token)
