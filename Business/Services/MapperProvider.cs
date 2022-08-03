@@ -41,6 +41,7 @@ public class MapperProvider : IMapperProvider
                     .ForMember(des => des.Author, m => m.MapFrom(sou => sou.Author))
                     .ForMember(des => des.Cover, m => m.MapFrom(sou => sou.Cover))
                     .ForMember(des => des.Content, m => m.MapFrom(sou => sou.Content))
+                    .ForMember(des => des.Genre, m => m.MapFrom(sou => sou.Genre))
                     .ForMember(des => des.Rating,
                         m => m.MapFrom(sou => (sou.Ratings.Count > 0) ? sou.Ratings.Average(r => r.Score) : 0))
                     .ForMember(des => des.Reviews, m => m.MapFrom(sou => sou.Reviews));

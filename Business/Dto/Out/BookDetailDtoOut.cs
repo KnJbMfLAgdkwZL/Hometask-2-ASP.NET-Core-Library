@@ -7,6 +7,7 @@ public class BookDetailDtoOut
     public string Author = "";
     public string Cover = "";
     public string Content = "";
+    public string Genre = "";
     public double Rating;
     public List<BookReviewsDtoOut> Reviews = new();
 }
