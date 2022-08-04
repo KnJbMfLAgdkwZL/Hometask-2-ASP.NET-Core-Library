@@ -52,7 +52,8 @@ public class BookService : IBookService
 
     public async Task<List<BookShortDtoOut>> GetTop10Async(string genre, CancellationToken token)
     {
-        Expression<Func<Book, bool>> condition = (book) => EF.Functions.Like(book.Genre, $"%{genre}%");
+        Expression<Func<Book, bool>> condition = (book) =>
+            EF.Functions.Like(book.Genre, $"%{genre}%") && book.Ratings.Count > 0;
 
         var includes = new List<Expression<Func<Book, object>>>()
         {
